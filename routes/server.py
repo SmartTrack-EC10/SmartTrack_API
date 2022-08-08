@@ -23,13 +23,14 @@ class PythonServer(SimpleHTTPRequestHandler):
 
         if(message is not None):
             self.send_header("Content-type", "application/json")
-            self.wfile.write(bytes(message, "utf-8"))
+            self.wfile.write(bytes('{ "Error": "{message}" }', "utf-8"))
 
     def GetCollection(self) -> str:
-        strCollection = self.headers.get("collection")
+        strCollection = self.headers.get("type")
         if strCollection is not None:
             strCollection = strCollection.upper()
 
+        return strCollection
 
     def CreateNotifications(self) -> None:
         """Python HTTP Server that handles Notifications"""
@@ -49,7 +50,7 @@ class PythonServer(SimpleHTTPRequestHandler):
             if(response):
                 self.SendResponseDefault(200, "OK")
             else:
-                self.SendResponseDefault(400, "")                    
+                self.SendResponseDefault(400, "", strMessageResponse)                    
         except Exception as e:
-            self.SendResponseDefault(500, "Internal Error", e)
+            self.SendResponseDefault(500, "Internal Error", str(e))
 

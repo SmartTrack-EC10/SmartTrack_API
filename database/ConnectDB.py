@@ -8,39 +8,42 @@ class ConnectionDB():
         self.CLIENT = None
         self.clNotification = None
 
-    def __ConnectionDataBase__(self, strCollection):
+    def __ConnectionDataBase__(self, strCollection: str)-> bool:
         """Create a Connection to MongoDB"""
         try:
             self.CLIENT = MongoClient("mongodb://localhost:27017/")
-            if "notifications" not in self.CLIENT.list_database_names():
-                self.clNotification = self.CLIENT["notifications"].create_collection(name= strCollection)
+            if "NOTIFICATIONS" not in self.CLIENT.list_database_names():
+                self.clNotification = self.CLIENT["NOTIFICATIONS"].create_collection(name= strCollection)
                 self.clNotification.insert_one({})
+                return True
             else:
-                self.clNotification = self.CLIENT.get_database(name="notifications")
-                
-                if strCollection in self.clNotification.list_collections():
+                self.clNotification = self.CLIENT.get_database(name="NOTIFICATIONS")
+                if strCollection in self.clNotification.list_collection_names():
                     self.clNotification.get_collection(strCollection)
+                    return True
                 else:
                     self.clNotification.create_collection(strCollection)
                     self.clNotification.insert_one({})
+                    return True
 
-        except Exception(e):
-            print("Connection to MongoDB is not working! \nException: " + e) 
+        except Exception as e:
+            print("Connection to MongoDB is not working! \n\rException: " + str(e)) 
+            return False
 
-    def StartDataBase(self, strCollection) -> bool:
+    def StartDataBase(self, strCollection: str) -> bool:
         try:
             if(self.__ConnectionDataBase__(strCollection) and self.clNotification is not None):
                 print("DataBase started as successfull!")
                 return True
-        except Exception(e):
-            print("Some error happen on creating collection: {strCollection}, see logs!")
+        except Exception as e:
+            print("Some error happen on creating collection: {strCollection}, \n\rException: " + str(e))
             return False
 
         return False 
 
-    def GetDatabase(self, strCollection) -> collection.Collection:
+    def SaveObject(self, strCollection: str, objNotification: object) -> collection.Collection:
         if(self.CLIENT is not None and self.clNotification is not None):
-            return self.clNotification
+            return self.clNotification.get_collection(strCollection).insert_one(objNotification)
         else:
             return None
 
