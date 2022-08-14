@@ -43,7 +43,7 @@ class ConnectionDB():
 
     def SaveObject(self, strCollection: str, objNotification: object) -> collection.Collection:
         if(self.CLIENT is not None and self.clNotification is not None):
-            return self.clNotification.get_collection(strCollection).insert_one(objNotification)
+            return self.clNotification.get_collection(strCollection).insert_one(objNotification).acknowledged
         else:
             return None
 

@@ -47,8 +47,7 @@ class Notifications():
             return False       
 
     def SaveNotification(self, strCollection: str, objNotification: object, strMessageResponse: str) -> bool:
-        if(self.__CheckAll__(strCollection, objNotification, strMessageResponse)):
-            self.mongoDB.SaveObject(strCollection, objNotification)
-            return True
+        if(self.__CheckAll__(strCollection, objNotification, strMessageResponse)):            
+            return self.mongoDB.SaveObject(strCollection, objNotification)
         else:  
             return False

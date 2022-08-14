@@ -1,9 +1,11 @@
 from http.server import SimpleHTTPRequestHandler
 from routes.Notifications import Notifications
+from Email.email import SMTP_Email
 import json
 
 class PythonServer(SimpleHTTPRequestHandler):
     notificationsDB = Notifications()
+    notificationsEmail = SMTP_Email()
 
     def do_POST(self):  
         """Python HTTP Server that handles POST requests"""
@@ -24,6 +26,8 @@ class PythonServer(SimpleHTTPRequestHandler):
         if(message is not None):
             self.send_header("Content-type", "application/json")
             self.wfile.write(bytes('{ "Error": "{message}" }', "utf-8"))
+    
+        self.connection.close()
 
     def GetCollection(self) -> str:
         strCollection = self.headers.get("type")
@@ -49,6 +53,7 @@ class PythonServer(SimpleHTTPRequestHandler):
 
             if(response):
                 self.SendResponseDefault(200, "OK")
+                self.notificationsEmail.SendEmail(objDocument)
             else:
                 self.SendResponseDefault(400, "", strMessageResponse)                    
         except Exception as e:
