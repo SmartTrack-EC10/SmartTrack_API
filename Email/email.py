@@ -1,9 +1,10 @@
-import smtplib, ssl, os
+import smtplib, ssl, os, traceback
 from email.mime.multipart import MIMEMultipart
 from email.mime.text  import MIMEText
 from email.mime.image import MIMEImage
 
 from Email.templateEmail import SMTP_Template
+from Logs.log import LogClass
 
 class SMTP_Email():
     port: int 
@@ -28,14 +29,14 @@ class SMTP_Email():
         # Create a secure SSL context
         self.context = ssl.create_default_context()
 
-    def __MIMEMultipart__(self, subject: str, receiver: str):
+    def __MIMEMultipart__(self, subject: str, receiver: str) -> None:
         """Update the Addressee Email"""        
         self.msgRoot['From'] = self.sender_user
         self.msgRoot['Subject'] = subject
         self.msgRoot['To'] = receiver
         self.msgRoot.preamble = 'This is a multi-part message in MIME format.'
 
-    def SendEmail(self, objNotification: object):
+    def SendEmail(self, objNotification: object) -> None:
         """Send email to specific person"""
         try:
             receivers = self.__GetReceiversUsers__()
@@ -65,7 +66,7 @@ class SMTP_Email():
                     self.msgRoot.attach(msgIconImage)
                     self.msgRoot.attach(msgLogoImage)                      
                 except Exception as e:
-                    print(e)
+                    LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
                 finally:
                     fp_icon.close() 
                     fp_logo.close()   
@@ -74,8 +75,10 @@ class SMTP_Email():
                     self.__MIMEMultipart__(subject = "The First Email by Python!", receiver = rec)
                     server.sendmail(self.sender_user, rec, self.msgRoot.as_string()) 
 
+                LogClass().Info("{ \"Info\": \"Emails sent successfully\" }")
+
         except Exception as e:
-            print(e)
+            LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
         finally:
             server.quit()
 

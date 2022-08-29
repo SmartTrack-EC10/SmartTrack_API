@@ -12,7 +12,7 @@ class Notifications():
         if(self.mongoDB.StartDataBase(strCollection)):
             return True
         else:
-            strMessageResponse = 'Collection: {strCollection} can\'t be created!'
+            strMessageResponse =  "{ \"Error\": " + "\"Colection: {strCollection} can\'t be created!\"" + " }"
             return False
 
     def __CheckCollections__(self, strCollection: str, strMessageResponse: str) -> bool:
@@ -27,27 +27,32 @@ class Notifications():
         return bReturn
 
     def __CheckObjectNotification__(self, objNotification: str, strMessageResponse: str) -> bool:
-        """Check if Truck object that are all necessaries fields"""
-
+        """Check if Truck object there are all necessaries fields"""
         #Check main field to save on Notifications
-        if("message" in objNotification and 
-        "id" in objNotification and 
-        "TimeInstant" in objNotification):
+        if("message" in objNotification and "id" in objNotification and "type" in objNotification):
             return True
         else:
-            strMessageResponse = "Object is invalid, check all fields!"
+            strMessageResponse = "{ \"Error\": \"Object is invalid, check all fields! \" }"
             return False
 
-    def __CheckAll__(self, strCollection: str, objNotification: object, strMessageResponse: str) -> bool:
+    def __CheckAll__(self, strCollection: str, strMessageResponse: str) -> bool:
+        """Check all requirements to access DataBase"""
         if(self.__CheckCollections__(strCollection, strMessageResponse)
-        and self.__CheckConnection__(strCollection, strMessageResponse)
-        and self.__CheckObjectNotification__(objNotification, strMessageResponse)):
+        and self.__CheckConnection__(strCollection, strMessageResponse)):
             return True
         else:
             return False       
 
     def SaveNotification(self, strCollection: str, objNotification: object, strMessageResponse: str) -> bool:
-        if(self.__CheckAll__(strCollection, objNotification, strMessageResponse)):            
+        """Save a notification on Database"""
+        if(self.__CheckAll__(strCollection, strMessageResponse)
+            and self.__CheckObjectNotification__(objNotification, strMessageResponse)):            
             return self.mongoDB.SaveObject(strCollection, objNotification)
+        else:  
+            return False
+
+    def GetNotification(self, strCollection: str, lsQuery: list, strMessageResponse: str) -> bool:
+        if(self.__CheckAll__(strCollection, lsQuery, strMessageResponse)):            
+            return self.mongoDB.GetObject(strCollection, lsQuery)
         else:  
             return False
