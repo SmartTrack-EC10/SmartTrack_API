@@ -1,3 +1,0 @@
-# ST_Server
-
-- Test
