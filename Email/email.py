@@ -29,6 +29,21 @@ class SMTP_Email():
         # Create a secure SSL context
         self.context = ssl.create_default_context()
 
+    def __GetReceiversUsers__(self, objNotification) -> list:
+        """Get all User's Email to send"""
+
+        if("email" in objNotification or len(objNotification.email) == 0):
+            lsEmails =  []
+
+            for email in objNotification['email']:
+                lsEmails.append(email)
+
+            return lsEmails
+        else:
+            LogClass().Error("No email has been setted.")
+
+        return []
+
     def __MIMEMultipart__(self, subject: str, receiver: str) -> None:
         """Update the Addressee Email"""        
         self.msgRoot['From'] = self.sender_user
@@ -38,13 +53,12 @@ class SMTP_Email():
 
     def SendEmail(self, objNotification: object) -> None:
         """Send email to specific person"""
+        server = smtplib.SMTP_SSL(self.server, self.port, context=self.context)
+        server.login(self.sender_user, self.sender_pass) #sender login
+
         try:
-            receivers = self.__GetReceiversUsers__()
+            receivers = self.__GetReceiversUsers__(objNotification)
             if(len(receivers) != 0 and objNotification is not None):
-
-                server = smtplib.SMTP_SSL(self.server, self.port, context=self.context)
-                server.login(self.sender_user, self.sender_pass) #sender login
-
                 # Encapsulate the plain and HTML versions of the message body in an
                 # 'alternative' part, so message agents can decide which they want to display.                    
                 msgText = MIMEText('This is the alternative plain text message.')
@@ -72,7 +86,7 @@ class SMTP_Email():
                     fp_logo.close()   
 
                 for rec in receivers:  #send for all
-                    self.__MIMEMultipart__(subject = "The First Email by Python!", receiver = rec)
+                    self.__MIMEMultipart__(subject = "SmartTrack - Notification", receiver = rec)
                     server.sendmail(self.sender_user, rec, self.msgRoot.as_string()) 
 
                 LogClass().Info("{ \"Info\": \"Emails sent successfully\" }")
@@ -81,9 +95,4 @@ class SMTP_Email():
             LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
         finally:
             server.quit()
-
-    def __GetReceiversUsers__(self) -> list:
-        """Get all User's Email to send"""
-        return ["081180021@faculdade.cefsa.edu.br"]
-
     

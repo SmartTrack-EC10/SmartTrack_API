@@ -43,10 +43,10 @@ class SMTP_Template():
                                                 <td align="center" bgcolor="#c9c9c9" style="width: 100%; padding: 10px 10px 10px 10px; font-size: large; border-top-left-radius: 20px; border-top-right-radius: 20px;"><strong>Message</strong>: {objNotification["message"]} </td>
                                             </tr>
                                             <tr>
-                                                <td align="center" bgcolor="#c9c9c9" style="width: 100%; padding: 10px 10px; font-size: large;"><strong>ID</strong>: {objNotification["id"]} </td>
+                                                <td align="center" bgcolor="#c9c9c9" style="width: 100%; padding: 10px 10px; font-size: large;"><strong>ID</strong>: {objNotification["object"]["id"]} </td>
                                             </tr>
                                             <tr>
-                                                <td align="center" bgcolor="#c9c9c9" style="width: 100%; padding: 10px 10px 10px 10px; font-size: large; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;"><strong>Type</strong>: {objNotification["type"]} </td>
+                                                <td align="center" bgcolor="#c9c9c9" style="width: 100%; padding: 10px 10px 10px 10px; font-size: large; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;"><strong>Type</strong>: {objNotification["object"]["type"]} </td>
                                             </tr>
                                         </table>
                                     </td>                        
@@ -74,7 +74,7 @@ class SMTP_Template():
                                                     <td align="center" style="width: 100%; padding: 5px; font-size: larger;"><strong>Email: <a href="mailto:smarttrack.notifications@gmail.com">SmartTrack.Notifications@gmail.com</a></strong></td>
                                                 </tr>                            
                                                 <tr>
-                                                    <td align="center" style="width: 100%; padding: 5px; font-size: larger;"><strong>Site:  <a href="">hhtp://www.SmartTrack.com.br</a></strong></td>
+                                                    <td align="center" style="width: 100%; padding: 5px; font-size: larger;"><strong>Site:  <a href="">http://www.SmartTrack.com.br</a></strong></td>
                                                 </tr>
                                             </table>
                                         </td>

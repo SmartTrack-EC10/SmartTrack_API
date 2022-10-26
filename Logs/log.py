@@ -1,4 +1,5 @@
 import logging, traceback
+from pathlib import Path
 from datetime import datetime
 
 class LogClass():
@@ -6,7 +7,10 @@ class LogClass():
         """Save a message to log File"""
         try:
             strDate = datetime.now().strftime("%d-%m-%Y")
-            file = './Logs/'+ strDate + ".txt"
+            path = './LogsRegister/'
+            file = path + strDate + ".txt"
+
+            Path(path).mkdir(parents=True, exist_ok=True)
 
             logging.basicConfig(filename = file, level=logging.INFO, format="[%(asctime)s] - [%(levelname)s] - %(message)s")
 

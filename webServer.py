@@ -1,6 +1,6 @@
 import sys, cgi
 from http.server import HTTPServer
-from routes.server import PythonServer
+from routes.Server import PythonServer
 
 HOST_NAME = "localhost"
 PORT = 8080

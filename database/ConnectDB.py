@@ -1,4 +1,5 @@
 from pymongo import MongoClient, database, collection
+import json
 from Logs.log import LogClass
 
 import traceback
@@ -11,16 +12,16 @@ class ConnectionDB():
         self.CLIENT = None
         self.clNotification = None
 
-    def __ConnectionDataBase__(self, strCollection: str)-> bool:
+    def __ConnectionDataBase__(self, strDatabase: str, strCollection: str)-> bool:
         """Create a Connection to MongoDB"""
         try:
             self.CLIENT = MongoClient("mongodb://localhost:27017/")
-            if "NOTIFICATIONS" not in self.CLIENT.list_database_names():
-                self.clNotification = self.CLIENT["NOTIFICATIONS"].create_collection(name= strCollection)
+            if strDatabase not in self.CLIENT.list_database_names():
+                self.clNotification = self.CLIENT[strDatabase].create_collection(name= strCollection)
                 self.clNotification.insert_one({})
                 return True
             else:
-                self.clNotification = self.CLIENT.get_database(name="NOTIFICATIONS")
+                self.clNotification = self.CLIENT.get_database(name=strDatabase)
                 if strCollection in self.clNotification.list_collection_names():
                     self.clNotification.get_collection(strCollection)
                     return True
@@ -33,10 +34,10 @@ class ConnectionDB():
                 str(traceback.format_exc()) + "\" }")
             return False
 
-    def StartDataBase(self, strCollection: str) -> bool:
+    def StartDataBase(self, strDatabase: str, strCollection: str) -> bool:
         """Start Database"""
         try:
-            if(self.__ConnectionDataBase__(strCollection) and self.clNotification is not None):
+            if(self.__ConnectionDataBase__(strDatabase, strCollection) and self.clNotification is not None):
                 LogClass().Info("{ \"Info\": \"DataBase started as successfull!\" }")
                 return True
         except Exception as e:
@@ -46,7 +47,7 @@ class ConnectionDB():
 
         return False 
 
-    def SaveObject(self, strCollection: str, objNotification: object) -> collection.Collection:
+    def SaveObject(self, strCollection: str, objNotification: object) -> bool:
         """Save a object on Database"""
         try:
             if(self.CLIENT is not None and self.clNotification is not None):
@@ -63,12 +64,19 @@ class ConnectionDB():
         except Exception as e:
             LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")        
 
-    def GetObject(self, strCollection: str, lsQuery: list) -> collection.Collection:
+    def GetObject(self, strCollection: str, objParameters: object) -> list:
         """Get a List of Objects on Database"""
         if(self.CLIENT is not None and self.clNotification is not None):
-            objResp = self.clNotification.get_collection(strCollection).find(filter=objNotification)           
+            lsResponseObject = []
+            objResp = self.clNotification.get_collection(strCollection).find(objParameters, {"_id": 0})      
 
-            return self.clNotification.get_collection(strCollection).find(objNotification)
+            for response in objResp:
+                if("recvTime" in response):
+                    response["recvTime"] = response["recvTime"].isoformat()
+
+                lsResponseObject.append(response)
+
+            return json.dumps({"data": lsResponseObject})
         else:
             return None
 
