@@ -54,7 +54,7 @@ class Notifications():
         strQuery = urlparse(request.path).query
 
         if(len(strQuery) == 0):
-            lsMessageErrorResponse.append("{ \"Error\": \"Bad Request: None parameters found!\" }")
+            lsMessageResponse.append("{ \"Error\": \"Bad Request: None parameters found!\" }")
             return []
 
         objParameters = dict(qc.split("=") for qc in strQuery.split("&"))
@@ -86,7 +86,7 @@ class Notifications():
                 LogClass().Info("{ \"Info\": \"Notifications requested successfully\" }")
                 return 200                             
             else:
-                LogClass().Error(strMessageResponse)
+                LogClass().Error(lsMessageResponse)
                 return 400                    
         except Exception as e:
             LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")

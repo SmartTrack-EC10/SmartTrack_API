@@ -12,9 +12,7 @@ class SmartRules():
         try:        
             strType = request.headers.get("type")
 
-            if(strType == "lastWorkedHours"):
-                nReturn = self.__UpdateWorkedHours__(request)
-            elif(strType == "workedHours"):
+            if(strType == "workedHours"):
                 nReturn = self.__CheckMaintencance__(request)
             else:
                 return nReturn
@@ -32,53 +30,63 @@ class SmartRules():
 
         return json.loads(raw_body)
 
-    def __UpdateWorkedHours__(self, request) -> int:
-        """Update Worked Hours on Context Broker"""
+    def __UpdateWorkedHours__(self, request) -> object:
+        """Update WorkedHours on Object"""
 
         jsonObject = self.__GetRequestBody__(request)
-        strID = jsonObject["object"]["id"]
-        nValue = jsonObject["object"]["lastWorkedHours"]
+        nLastWorkedHours = jsonObject["object"]["lastWorkedHours"]
+        jsonObject["object"]["workedHours"] += nLastWorkedHours 
 
-        strRoute = self.strHttp + "/v2/entities/" + strID + "/attrs/workedHours"
-        jsonPayload = { "value": { "$inc": nValue }, "type": "Number" }
+        return jsonObject
 
-        return self.__SendDefaultRequest__("PUT", strRoute, jsonPayload, self.jsonHeaders)
-
-    def __CheckEachOneMaintenance__(self, objRules: object, nWorkedHours: int, nHours: int, strKey: str) -> object:
+    def __CheckEachOneMaintenance__(self, objReturn: object, objRules: object, nWorkedHours: int, nHours: int, strKey: str) -> object:
         """"Rule Maintenance"""
 
         nCount = int(nWorkedHours / nHours)
         if  (nCount > objRules[strKey]): 
-            objRules[strKey] = {"value": nCount, "type": "Number"}
-            objRules["activeNow"] = {"value": objRules["activeNow"] + 1, "type": "Number"}
-        else:
-            del objRules[strKey]
+            nDiff = nCount - objRules[strKey]
+            objReturn[strKey] = {"value": nCount, "type": "Number"}            
+            objReturn["activeNow"] = {"value": objReturn["activeNow"]["value"] + nDiff, "type": "Number"}
+            strLastQuantity = strKey.replace("all", "lastQuantity")
+            objReturn[strLastQuantity] =  { "value": nDiff, "type": "Number" }
             
-        return objRules
+        return objReturn
+
+    def __CheckLedStatusRule__(self, objReturn: object) -> object:
+        """"Rule Led Status"""
+
+        if  (objReturn["activeNow"]["value"] > 0): 
+            objReturn["ledStatus"] = {"value": "manutencao", "type": "Text"}
+            
+        return objReturn
 
     def __CheckRuleMaintenance__(self, nWorkedHours: int, objRules: object) -> object:
         """"Check Rules' Maintenance"""
+        objReturn = {"activeNow": {"value": objRules["activeNow"], "type": "Number"}}  
 
         # 10 Hours' rule
-        objRules = self.__CheckEachOneMaintenance__(objRules, nWorkedHours, 10, "allTrigged10Hours")
+        objReturn = self.__CheckEachOneMaintenance__(objReturn, objRules, nWorkedHours, 10, "allTrigged10Hours")
         # 50 Hours' rule
-        objRules = self.__CheckEachOneMaintenance__(objRules, nWorkedHours, 50, "allTrigged50Hours")
+        objReturn = self.__CheckEachOneMaintenance__(objReturn, objRules, nWorkedHours, 50, "allTrigged50Hours")
         # 250 Hours' rule
-        objRules = self.__CheckEachOneMaintenance__(objRules, nWorkedHours, 250, "allTrigged250Hours")
+        objReturn = self.__CheckEachOneMaintenance__(objReturn, objRules, nWorkedHours, 250, "allTrigged250Hours")
         # 500 Hours' rule
-        objRules = self.__CheckEachOneMaintenance__(objRules, nWorkedHours, 500, "allTrigged500Hours")
+        objReturn = self.__CheckEachOneMaintenance__(objReturn, objRules, nWorkedHours, 500, "allTrigged500Hours")
         # 1000 Hours' rule
-        objRules = self.__CheckEachOneMaintenance__(objRules, nWorkedHours, 1000, "allTrigged1000Hours")
+        objReturn = self.__CheckEachOneMaintenance__(objReturn, objRules, nWorkedHours, 1000, "allTrigged1000Hours")
 
-        return objRules
+        # Set led status
+        objReturn = self.__CheckLedStatusRule__(objReturn)
+
+        return objReturn
 
     def __CheckMaintencance__(self, request) -> int:
         """Check for some Maintenance Rule"""
 
-        jsonObject = self.__GetRequestBody__(request)
+        jsonObject = self.__UpdateWorkedHours__(request)
         strID = jsonObject["object"]["id"]
         nWorkedHours = jsonObject["object"]["workedHours"]
-        objRules = jsonObject["object"]
+        objRules = jsonObject["object"]["rules"]
 
         objRules = self.__CheckRuleMaintenance__(nWorkedHours, objRules)
 

@@ -1,4 +1,4 @@
-import json, traceback
+import traceback
 from urllib.parse import urlparse
 from Logs.log import LogClass
 from dateutil import parser
@@ -28,7 +28,7 @@ class History():
         strQuery = urlparse(request.path).query
 
         if(len(strQuery) == 0):
-            lsMessageErrorResponse.append("{ \"Error\": \"Bad Request: None parameters found!\" }")
+            lsMessageResponse.append("{ \"Error\": \"Bad Request: None parameters found!\" }")
             return []
 
         objParameters = dict(qc.split("=") for qc in strQuery.split("&"))
