@@ -4,7 +4,7 @@ from Logs.log import LogClass
 class SmartRules():
     strHttp: str = "http://52.7.63.69:1026"
     jsonHeaders = { "Content-Type": "application/json", "fiware-service": "helixiot", "fiware-servicepath": "/" }
-      
+
     def CheckSmartRules(self, request) -> int:
         """Check all rules is called"""
 

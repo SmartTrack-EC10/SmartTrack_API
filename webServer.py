@@ -1,16 +1,12 @@
-import sys, cgi
-from http.server import HTTPServer
-from routes.Server import PythonServer
+from swagger.swagger import swagger
+from flasgger import swag_from
 
 HOST_NAME = "localhost"
 PORT = 8080
 
-if __name__ == "__main__":
-    server = HTTPServer((HOST_NAME, PORT), PythonServer)
+app = swagger.app
+
+if __name__ == '__main__':
     print(f"Server started http://{HOST_NAME}:{PORT}")
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        server.server_close()
-        print("Server stopped successfully")
-        sys.exit(0)
+    app.run(host=HOST_NAME, port=PORT)
+    
