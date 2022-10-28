@@ -1,12 +1,83 @@
 openapi: 3.0.0
 tags:
   - name: History
+
 get:  
-  description: Get all data from Truck
+  description: Get the specific data from the object
+  parameters:
+  - name: type
+    in: query
+    required: true
+    description: The Object type (e.g. Truck)
+    schema: 
+      type: string   
+      example: Truck 
+  - name: id
+    in: query
+    required: true
+    description: The Object ID    
+    schema:
+      type: string   
+      example: 'urn:ngsi-ld:Truck:2feefcf6-b7c8-470f-a628-d92300ef64c4'      
+  - name: field
+    in: query
+    required: true
+    description: The specific data to query
+    schema: 
+      type: string   
+      example: location 
+  - name: dateStart
+    in: query
+    required: true
+    description: The start date to query
+    schema:      
+      format: date-time
+      type: string   
+      example: '2022-07-30T01:06:54.252'
+  - name: dateEnd
+    in: query
+    required: true
+    description: The end date to query
+    schema:       
+      format: date-time
+      type: string   
+      example: '2022-09-01T23:06:54.252'
+  allowReserved: true
+
+definitions:
+  Error:
+    type: object    
+    properties:
+      Error:
+        type: string
+        example: 'Error message'
+
 responses:
     '200':
-      description: Successful response
+      description: Successful response      
+      schema:
+        type: object
+        properties:
+          data:
+            type: array
+            items:
+              type: object
+              properties:                
+                recvTime:
+                  type: string
+                attrName:
+                  type: string
+                attrType:
+                  type: string
+                attrValue:
+                  type: string
     '400':
       description: Bad Request
+      schema:
+        $ref: '#/definitions/Error'
+      examples:
+          Error: "Some error happen"
     '500':
       description: Internal Server Error
+      schema:
+        $ref: '#/definitions/Error'

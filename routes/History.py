@@ -25,13 +25,18 @@ class History():
 
     def __GetParameters__(self, request, lsMessageResponse: list):
         """Create Query to send to Database"""
-        strQuery = urlparse(request.path).query
+        strQuery = urlparse(request.full_path).query
 
         if(len(strQuery) == 0):
             lsMessageResponse.append("{ \"Error\": \"Bad Request: None parameters found!\" }")
             return []
 
         objParameters = dict(qc.split("=") for qc in strQuery.split("&"))
+
+        # normalize swagger test
+        objParameters["id"] = objParameters["id"].replace("%3A", ":")
+        objParameters["dateStart"] = objParameters["dateStart"].replace("%3A", ":")
+        objParameters["dateEnd"] = objParameters["dateEnd"].replace("%3A", ":")
 
         return objParameters
 
