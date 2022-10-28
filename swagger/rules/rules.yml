@@ -1,0 +1,64 @@
+openapi: 3.0.0
+tags:
+  - name: Rules
+post:  
+  description: Validade the Rules 
+  parameters:
+  - name: Type
+    in: Header
+    required: true
+    description: The specific rule to check
+    type: string
+    enum: [workedHours]
+  - name: Body
+    in: body
+    type: object
+    required: true
+    description: The object created by Fiware
+    properties:
+      message:
+        type: string
+        required: true
+      object:
+        type: object
+        properties:
+          id:
+            type: string
+            required: true
+          type:
+            type: string
+            required: true 
+          lastWorkedHours:
+            type: number
+            required: true
+          workedHours:
+            type: number
+            required: true
+          rules:
+            type: object
+            properties:
+              activeNow:
+                type: number
+                required: true
+              allTrigged1000Hours:
+                type: number
+                required: true
+              allTrigged10Hours:
+                type: number
+                required: true 
+              allTrigged250Hours:
+                type: number
+                required: true
+              allTrigged500Hours:
+                type: number
+                required: true
+              allTrigged50Hours: 
+                type: number
+                required: true
+responses:
+    '200':
+      description: Successful response
+    '400':
+      description: Bad Request
+    '500':
+      description: Internal Server Error

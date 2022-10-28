@@ -1,9 +1,8 @@
 openapi: 3.0.0
 tags:
-  - name: Hello World
-get:
-  
-  description: None
+  - name: History
+get:  
+  description: Get all data from Truck
 responses:
     '200':
       description: Successful response

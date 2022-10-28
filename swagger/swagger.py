@@ -7,29 +7,15 @@ from routes.Server import appServer
 app = Flask(__name__)
 app.json_encoder = LazyJSONEncoder
 
-app.register_blueprint(appServer, url="/api")
+app.register_blueprint(appServer, url="")
 
 swagger_template = dict(
     info = {
         'title': LazyString(lambda: 'SmartTrack API'),
         'version': LazyString(lambda: '0.1'),
-        'description': LazyString(lambda: 'This document depicts a sample Swagger UI document and implements Hello World functionality after executing GET.'),
+        'description': LazyString(lambda: 'This document will describe all functionalities from SmartTrack API. (Enjoy)'),
     },
     host = LazyString(lambda: request.host)
 )
-swagger_config = {
-    "headers": [],
-    "specs": [
-        {
-            "endpoint": 'hello_world',
-            "route": '/hello_world.json',
-            "rule_filter": lambda rule: True,
-            "model_filter": lambda tag: True,
-        }
-    ],
-    "static_url_path": "/flasgger_static",
-    "swagger_ui": True,
-    "specs_route": "/apidocs/"
-}
 
-swagger = Swagger(app, template=swagger_template, config=swagger_config)
+swagger = Swagger(app, template=swagger_template)

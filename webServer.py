@@ -1,5 +1,4 @@
 from swagger.swagger import swagger
-from flasgger import swag_from
 
 HOST_NAME = "localhost"
 PORT = 8080
