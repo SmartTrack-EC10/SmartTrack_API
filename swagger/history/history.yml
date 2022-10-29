@@ -49,8 +49,10 @@ definitions:
     type: object    
     properties:
       Error:
-        type: string
-        example: 'Error message'
+        type: array
+        items:
+          type: string
+          example: 'Error message'
 
 responses:
     '200':
@@ -75,9 +77,5 @@ responses:
       description: Bad Request
       schema:
         $ref: '#/definitions/Error'
-      examples:
-          Error: "Some error happen"
     '500':
       description: Internal Server Error
-      schema:
-        $ref: '#/definitions/Error'

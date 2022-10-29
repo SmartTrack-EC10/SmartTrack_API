@@ -27,7 +27,7 @@ def Rules_POST():
 
 @appServer.route("/notifications", methods=['POST'])
 def Notifications_POST():
-    """file: ../swagger/notifications/notifications.yml"""
+    """file: ../swagger/notifications/post_notifications.yml"""
     nCode = 500
     lsMessageResponse = []
     nCode = notifications.CreateNotifications(request, lsMessageResponse)
@@ -35,6 +35,7 @@ def Notifications_POST():
 
 @appServer.route("/notifications", methods=['GET'])
 def Notifications_GET():
+    """file: ../swagger/notifications/get_notifications.yml"""
     nCode = 500
     lsMessageResponse = []
 

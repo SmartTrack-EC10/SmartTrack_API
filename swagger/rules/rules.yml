@@ -55,10 +55,23 @@ post:
               allTrigged50Hours: 
                 type: number
                 required: true
+
+definitions:
+  Error:
+    type: object    
+    properties:
+      Error:
+        type: array
+        items:
+          type: string
+          example: 'Error message'
+
 responses:
     '200':
       description: Successful response
     '400':
       description: Bad Request
+      schema:
+        $ref: '#/definitions/Error'
     '500':
       description: Internal Server Error

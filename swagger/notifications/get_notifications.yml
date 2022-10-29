@@ -1,0 +1,58 @@
+openapi: 3.0.0
+tags:
+  - name: Notifications
+get:  
+  description: Get all Notifications on DB
+  parameters:
+  - name: type
+    in: query
+    required: true
+    description: The Object type (e.g. Truck)
+    schema: 
+      type: string   
+      example: Truck 
+  - name: id
+    in: query
+    required: false
+    description: The Object ID    
+    schema:
+      type: string   
+      example: 'urn:ngsi-ld:Truck:2feefcf6-b7c8-470f-a628-d92300ef64c4'
+responses:
+    '200':
+      description: Successful response
+      schema:
+        type: object
+        properties:
+          message:
+            type: string
+          status:
+            type: string
+          email:
+            type: array
+            items:
+              type: string
+          datetime:
+            type: string
+          object:
+            type: object
+
+    '400':
+      description: Bad Request
+      schema:
+        $ref: '#/definitions/Error'
+    '500':
+      description: Internal Server Error
+      schema:
+        $ref: '#/definitions/Error'
+
+definitions:
+  Error:
+    type: object    
+    properties:
+      Error:
+        type: array
+        items:
+          type: string
+          example: 'Error message'
+
