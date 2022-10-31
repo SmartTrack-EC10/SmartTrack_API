@@ -7,6 +7,17 @@ post:
   - name: message
     in: body
     description: The message to describe the notification
+    required: true
+    type: string
+  - name: id
+    in: body
+    description: The specific Object ID
+    required: true
+    type: string
+  - name: type
+    in: body    
+    description: The type of Object (e.g. Truck)
+    required: true
     type: string
   - name: email
     in: body    
@@ -22,6 +33,7 @@ post:
   - name: object
     in: body
     type: object
+    required: true
     description: The current object trigged
 
 definitions:

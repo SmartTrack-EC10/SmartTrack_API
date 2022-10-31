@@ -78,7 +78,22 @@ class ConnectionDB():
 
             return json.dumps({"data": lsResponseObject})
         else:
-            return None
+            return []
+
+    def UpdateObject(self, strCollection: str, id: str, objReq: object) -> bool:
+        """Get a List of Objects on Database"""
+        if(self.CLIENT is not None and self.clNotification is not None):
+            lsResponseObject = []
+            objResp = self.clNotification.get_collection(strCollection).update_one({_id: id}, {"$set": objReq})      
+
+            if(objResp.acknowledged):
+                LogClass().Info("{ \"Info\": \"Notification successfully updated\" }")
+            else:
+                objResp._raise_if_unacknowledged(Exception)
+
+            return objResp.acknowledged
+        else:
+            return False
 
 
 

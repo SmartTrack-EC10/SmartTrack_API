@@ -83,11 +83,14 @@ class SMTP_Email():
                     LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
                 finally:
                     fp_icon.close() 
-                    fp_logo.close()   
+                    fp_logo.close()  
+
+                qtda = objNotification["qtda"]
 
                 for rec in receivers:  #send for all
-                    self.__MIMEMultipart__(subject = "SmartTrack - Notification", receiver = rec)
-                    server.sendmail(self.sender_user, rec, self.msgRoot.as_string()) 
+                    for qt in range(qtda):
+                        self.__MIMEMultipart__(subject = "SmartTrack - Notification", receiver = rec)
+                        server.sendmail(self.sender_user, rec, self.msgRoot.as_string()) 
 
                 LogClass().Info("{ \"Info\": \"Emails sent successfully\" }")
 

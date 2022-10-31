@@ -1,0 +1,43 @@
+openapi: 3.0.0
+tags:
+  - name: Notifications
+post:  
+  description: Update the status of notificatioons 
+  parameters:
+  - name: _id
+    in: body
+    description: The Notifications' ID
+    required: true
+    type: string
+  - name: type
+    in: body    
+    description: The type of object that trigged the notification
+    required: true
+    enum: [Truck, Person, AgriFarm, AgriParcel]
+  - name: status
+    in: body    
+    description: The emails to send the notification
+    required: true
+    enum: [active, unactive]
+
+definitions:
+  Error:
+    type: object    
+    properties:
+      Error:
+        type: array
+        items:
+          type: string
+          example: 'Error message'
+
+responses:
+    '200':
+      description: Successful response      
+    '400':
+      description: Bad Request
+      schema:
+        $ref: '#/definitions/Error'
+    '500':
+      description: Internal Server Error
+
+

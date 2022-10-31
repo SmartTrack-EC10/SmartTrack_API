@@ -5,30 +5,53 @@ class SmartRules():
     strHttp: str = "http://52.7.63.69:1026"
     jsonHeaders = { "Content-Type": "application/json", "fiware-service": "helixiot", "fiware-servicepath": "/" }
 
-    def CheckSmartRules(self, request) -> int:
-        """Check all rules is called"""
+    def CheckWorkedHours(self, request) -> int:
+        """Check all rules about workedHours"""
 
         nReturn = 500 #by default, code response is 500
-        try:        
-            strType = request.headers.get("type")
-
-            if(strType == "workedHours"):
-                nReturn = self.__CheckMaintencance__(request)
-            else:
-                return nReturn
-
+        try: 
+            nReturn = self.__CheckMaintencance__(request)
         except Exception as e:
             LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
 
         return nReturn
 
+    def CheckBattery(self, request) -> int:
+        """Check all rules is called"""
+
+        nReturn = 500 #by default, code response is 500
+        try: 
+            objReq = self.__GetRequestBody__(request)
+            nReturn = self.__UpdateBattery__(objReq)
+        except Exception as e:
+            LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
+
+        return nReturn
+
+    def __CalcBatteryPerc(self, voltage: float) -> float:
+        """Voltage to percentage"""
+        maximum = 8.6
+        minimum = 5.3
+        return round((voltage - minimum) * 100 / (maximum - minimum), 0)
+
+    def __UpdateBattery__(self, objRequest: object) -> int:
+        """Update on Broker the Battery percentage"""
+        batteryVolt = objRequest["object"]["battery"]
+        batteryPerc = self.__CalcBatteryPerc(batteryVolt)
+        strID = objRequest["object"]["id"]
+
+        strRoute = self.strHttp + "/v2/entities/" + strID + "/attrs"
+        objReturn = {"batteryPerc": { "value": batteryPerc, "type": "Number"}}  
+
+        return self.__SendDefaultRequest__("POST", strRoute, objReturn, self.jsonHeaders)
+
     def __GetRequestBody__(self, request) -> object:
         """Get request's body to json object"""
 
         content_len = int(request.headers.get("Content-Length"), 0)
-        raw_body = request.rfile.read(content_len)
+        raw_body = request.json
 
-        return json.loads(raw_body)
+        return raw_body
 
     def __UpdateWorkedHours__(self, request) -> object:
         """Update WorkedHours on Object"""

@@ -26,6 +26,8 @@ responses:
         properties:
           message:
             type: string
+          id:
+            type: string
           status:
             type: string
           email:

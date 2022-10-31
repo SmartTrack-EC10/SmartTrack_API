@@ -2,7 +2,7 @@ from flask import Flask, request
 from flasgger import Swagger, LazyString, LazyJSONEncoder
 from flasgger import swag_from
 
-from routes.Server import appServer
+from routes.server import appServer
 
 app = Flask(__name__)
 app.json_encoder = LazyJSONEncoder

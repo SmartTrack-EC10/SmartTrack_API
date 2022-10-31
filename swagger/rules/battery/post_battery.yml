@@ -1,0 +1,40 @@
+openapi: 3.0.0
+tags:
+  - name: Rules
+post:  
+  description: Update the Battery Percentage
+  parameters:
+  - name: message
+    in: body
+    type: string
+    description: The message to describe the rule
+  - name: object
+    in: body
+    type: object
+    required: true
+    description: The object with informations
+    properties:
+          id:
+            type: string
+            required: true          
+          battery:
+            type: number
+            required: true
+
+definitions:
+  Error:
+    type: object    
+    properties:
+      Error:
+        type: array
+        items:
+          type: string
+          example: 'Error message'
+
+responses:
+    '204':
+      description: Successful response
+    '400':
+      description: Bad Request      
+    '500':
+      description: Internal Server Error

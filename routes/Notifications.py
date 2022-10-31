@@ -29,7 +29,7 @@ class Notifications():
         bReturn = switch.get(strCollection, False)
 
         if not bReturn:
-            lsMessageResponse.append("header type is not allowed!")
+            lsMessageResponse.append("Type is not allowed!")
 
         return bReturn
 
@@ -52,7 +52,7 @@ class Notifications():
 
     def __GetParameters__(self, request, lsMessageResponse: list):
         """Create Query to send to Database"""
-        strQuery = urlparse(request.path).query
+        strQuery = urlparse(request.full_path).query
 
         if(len(strQuery) == 0):
             lsMessageResponse.append("Bad Request: None parameters found!")
@@ -92,49 +92,56 @@ class Notifications():
         except Exception as e:
             LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
             lsMessageResponse.append(str(e))
-            return 500  
-
-    def __GetCollectionHeaders__(self, request) -> str:
-        """Get header from request"""
-        strCollection = request.headers.get("type")
-        if strCollection is not None:
-            strCollection = strCollection.upper()
-
-        return strCollection
-
+            return 500 
+    
     def __GetRequestBody__(self, request) -> object:
         """Get request's body to json object"""
+        return request.json
 
-        content_len = int(request.headers.get("Content-Length"), 0)
-        raw_body = request.rfile.read(content_len)
-
-        return json.loads(raw_body)
-
-    def __CheckBodyRequest__(self, objDocument: object, lsMessageResponse: list) -> bool:
+    def __CheckBodyRequestCreate__(self, objDocument: object, lsMessageResponse: list) -> bool:
         """Check required fields on object"""
         bValid = True
 
-        if("emails" not in objDocument or len(objDocument["emails"]) == 0):
+        if("message" not in objDocument or len(objDocument["message"]) == 0):
+            lsMessageResponse.append("message not in request")
+            bValid = False
+        elif("id" not in objDocument or len(objDocument["id"]) == 0):
+            lsMessageResponse.append("id not in request")
+            bValid = False
+        elif("type" not in objDocument or len(objDocument["type"]) == 0):
+            lsMessageResponse.append("type not in request")
+            bValid = False
+        elif("email" not in objDocument or len(objDocument["email"]) == 0):
             lsMessageResponse.append("email not in request")
             bValid = False
         elif("object" not in objDocument):
-            lsMessageResponse.append("email not in request")
+            lsMessageResponse.append("object not in request")
             bValid = False
 
         return bValid
 
+    def __SaveNotification__(self, strDatabase: str, strCollection: str, objNotification: object, lsMessageResponse: list) -> bool:
+        """Save a notification on Database"""
+        if(self.__CheckAll__(strDatabase, strCollection, lsMessageResponse)
+            and self.__CheckObjectNotification__(objNotification, lsMessageResponse)):            
+            return self.mongoDB.SaveObject(strCollection, objNotification)
+        else:  
+            return False
+
     def CreateNotifications(self, request, lsMessageResponse: list) -> int:
         """Python HTTP Server that handles Notifications"""
         try:            
-            strCollection = self.__GetCollectionHeaders__(request)
-            if(strCollection is None):
-                strError = "Invalid collection!"
+            strCollection = "" 
+            objDocument = self.__GetRequestBody__(request)
+            if(objDocument["type"] is None):
+                strError = "Invalid type!"
                 LogClass().Error(strError)
                 lsMessageResponse.append(strError)
                 return 400
+            else:
+                strCollection = objDocument["type"].upper()
 
-            objDocument = self.__GetRequestBody__(request)
-            if(not self.__CheckBodyRequest__(objDocument, lsMessageResponse)):
+            if(not self.__CheckBodyRequestCreate__(objDocument, lsMessageResponse)):
                 return 400
 
             objDocument["status"] = "active" #implement status as active
@@ -156,11 +163,55 @@ class Notifications():
             lsMessageResponse.append(str(e))
             return 500   
 
-    def __SaveNotification__(self, strDatabase: str, strCollection: str, objNotification: object, lsMessageResponse: list) -> bool:
+    def __CheckBodyRequestUpdate__(self, objDocument: object, lsMessageResponse: list) -> bool:
+        """Check required fields on object"""
+        bValid = True
+        eStatus = ["active", "unactive"]
+
+        if("id" not in objDocument or len(objDocument["id"]) == 0):
+            lsMessageResponse.append("id not in request")
+            bValid = False
+        elif("type" not in objDocument or len(objDocument["type"]) == 0):
+            lsMessageResponse.append("type not in request")
+            bValid = False        
+        elif("status" not in objDocument or eStatus.index(objDocument["status"]) == 0):
+            lsMessageResponse.append("status is not valid")
+            bValid = False
+
+        return bValid
+
+    def __UpdateNotification__(self, strDatabase: str, strCollection: str, id: str, objReq: object, lsMessageResponse: list) -> bool:
         """Save a notification on Database"""
-        if(self.__CheckAll__(strDatabase, strCollection, lsMessageResponse)
-            and self.__CheckObjectNotification__(objNotification, lsMessageResponse)):            
-            return self.mongoDB.SaveObject(strCollection, objNotification)
+        if(self.__CheckAll__(strDatabase, strCollection, lsMessageResponse)):
+            return self.mongoDB.UpdateObject(strCollection, id, objReq)
         else:  
             return False
-   
+
+    def UpdateNotifications(self, request, lsMessageResponse: list) -> int:
+        """Update status from Notification"""
+        try:            
+            objDocument = self.__GetRequestBody__(request)
+            if(not self.__CheckBodyRequestUpdate__(objDocument, lsMessageResponse)):
+                return 400
+
+            strCollection = objDocument["type"]
+
+            objId = objDocument["id"]
+            objReq["status"] = objDocument["status"]
+
+            response = self.__UpdateNotification__("NOTIFICATIONS", strCollection, objId, objDocument, lsMessageResponse)
+
+            if(response):
+                LogClass().Info("{ \"Info\": \"Notification saved successfully\" }")
+                self.notificationsEmail.SendEmail(objDocument)
+                return 200              
+            else:
+                return 400   
+        except json.JSONDecodeError as e:
+            LogClass().Error("{ \"Error\": \"" + str(traceback.format_exc()) + "\" }")
+            lsMessageResponse.append(str(traceback.format_exc()))
+            return 400           
+        except Exception as e:
+            LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
+            lsMessageResponse.append(str(e))
+            return 500 

@@ -17,13 +17,27 @@ appServer = Blueprint("", __name__)
 def apidocs():
     return redirect("/apidocs")
 
-@appServer.route("/rules", methods=['POST'])
-def Rules_POST():
-    """file: ../swagger/rules/rules.yml"""
+@appServer.route("/rules/workedHours", methods=['POST'])
+def WorkedHours_POST():
+    """file: ../swagger/rules/workedHours/post_workedHours.yml"""
+    nCode = 500
+    nCode = smartRulesReq.CheckWorkedHours(request)
+    return __SendResponseDefault__(nCode, lsMessageResponse, True if nCode == 400 else False)
+
+@appServer.route("/rules/battery", methods=['POST'])
+def Battery_POST():
+    """file: ../swagger/rules/battery/post_battery.yml"""
+    nCode = 500
+    nCode = smartRulesReq.CheckBattery(request)
+    return __SendResponseDefault__(nCode, lsMessageResponse, True if nCode == 400 else False)
+
+@appServer.route("/notifications", methods=['PUT'])
+def Notifications_PUT():
+    """file: ../swagger/notifications/put_notifications.yml"""
     nCode = 500
     lsMessageResponse = []
-    nCode = smartRulesReq.CheckSmartRules(request)
-    __SendResponseDefault__(nCode, lsMessageResponse, True if nCode == 400 else False)
+    nCode = notifications.UpdateNotifications(request, lsMessageResponse)
+    return __SendResponseDefault__(nCode, lsMessageResponse, True if nCode == 400 else False)
 
 @appServer.route("/notifications", methods=['POST'])
 def Notifications_POST():
@@ -31,7 +45,7 @@ def Notifications_POST():
     nCode = 500
     lsMessageResponse = []
     nCode = notifications.CreateNotifications(request, lsMessageResponse)
-    __SendResponseDefault__(nCode, lsMessageResponse, True if nCode == 400 else False)
+    return __SendResponseDefault__(nCode, lsMessageResponse, True if nCode == 400 else False)
 
 @appServer.route("/notifications", methods=['GET'])
 def Notifications_GET():
