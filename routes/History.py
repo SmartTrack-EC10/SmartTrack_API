@@ -4,7 +4,6 @@ from Logs.log import LogClass
 from dateutil import parser
 from database.ConnectDB import ConnectionDB
 
-
 class History():
     """Get the persistent data on database"""
     mongoDB: ConnectionDB

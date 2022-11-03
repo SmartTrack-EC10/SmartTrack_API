@@ -1,4 +1,4 @@
-import smtplib, ssl, traceback
+import smtplib, ssl, traceback, os
 from email.mime.multipart import MIMEMultipart
 from email.mime.text  import MIMEText
 from email.mime.image import MIMEImage
@@ -17,9 +17,9 @@ class SMTP_Email():
 
     def __init__(self):
         self.port = 465 #For SSL
-        self.server = "smtp.gmail.com" #os.environ.get("SMTP_Server")
-        self.sender_user = "smarttrack.notifications@gmail.com" #os.environ.get("SMTP_User")
-        self.sender_pass = "wtiagxvwnxmyrniz" #os.environ.get("SMTP_Pass")
+        self.server = os.environ.get("SMTP_Server")
+        self.sender_user = os.environ.get("SMTP_User")
+        self.sender_pass = os.environ.get("SMTP_Pass")
 
         # Create a multipart message and set headers
         self.msgRoot = MIMEMultipart('related')
@@ -69,11 +69,11 @@ class SMTP_Email():
 
                 # This example assumes the image is in the current directory
                 try:
-                    fp_icon = open('Email\\images\\error.png', 'rb') if True else open('Email\\images\\warning.png', 'rb')
+                    fp_icon = open('/home/ubuntu/SmartTrack API/Email/images/error.png', 'rb')
                     msgIconImage = MIMEImage(fp_icon.read()) 
                     msgIconImage.add_header('Content-ID', '<iconMessage>') # Define the image's ID as referenced above
 
-                    fp_logo = open('Email\\images\\logoSmartTrack_1.png', 'rb')
+                    fp_logo = open('/home/ubuntu/SmartTrack API/Email/images/logoSmartTrack_1.png', 'rb')
                     msgLogoImage = MIMEImage(fp_logo.read())                         
                     msgLogoImage.add_header('Content-ID', '<iconLogo>')
 

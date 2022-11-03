@@ -10,6 +10,9 @@ class Notifications():
     mongoDB: ConnectionDB
     notificationsEmail = SMTP_Email()
 
+    strHttp: str = "http://52.7.63.69:1026"
+    jsonHeaders = { "Content-Type": "application/json", "fiware-service": "helixiot", "fiware-servicepath": "/" }
+
     def __init__(self):
         """Constructor to Notifications"""
         self.mongoDB = ConnectionDB()
@@ -36,7 +39,7 @@ class Notifications():
     def __CheckObjectNotification__(self, objNotification: str, lsMessageResponse: list) -> bool:
         """Check if Truck object there are all necessaries fields"""
         #Check main field to save on Notifications
-        if("message" in objNotification and "object" in objNotification and "email" in objNotification and "datetime" in objNotification):
+        if("message" in objNotification and "object" in objNotification and "email" in objNotification):
             return True
         else:
             lsMessageResponse.append("Object is invalid, check all fields!")
@@ -80,6 +83,8 @@ class Notifications():
             if(strCollection is None):
                 lsMessageResponse.append("Parameter 'type' is missing!")                
                 return 400
+
+            objParameters["id"] = objParameters["id"].replace("%3A", ":")
             
             lsMessageResponse.append(self.__GetNotifications__("NOTIFICATIONS", strCollection, objParameters, lsMessageResponse))
 
@@ -96,7 +101,8 @@ class Notifications():
     
     def __GetRequestBody__(self, request) -> object:
         """Get request's body to json object"""
-        return request.json
+        response = request.get_data()
+        return json.loads(response.decode("utf-8"))
 
     def __CheckBodyRequestCreate__(self, objDocument: object, lsMessageResponse: list) -> bool:
         """Check required fields on object"""
@@ -128,6 +134,21 @@ class Notifications():
         else:  
             return False
 
+    def __UpdateStatusLedGeofence__(self, objDocument: object) -> int:
+        """Update Status led on Enter/Leaving geofence"""
+        nCode = 204
+        strLedStatus = objDocument["object"]["ledStatus"]
+        strRule = objDocument["rule"]
+
+        if(strRuleobjDocument["object"]["ledStatus"] != "lowBattery"):
+            strID = objDocument["id"]
+            strRoute = self.strHttp + "/v2/entities/" + strID + "/attrs"
+
+            objSend = {"ledStatus": {"value": "outGeofence", "type": "Text"}}
+            nCode = self.__SendDefaultRequest__("POST", strRoute, objReturn, self.jsonHeaders)          
+
+        return nCode
+
     def CreateNotifications(self, request, lsMessageResponse: list) -> int:
         """Python HTTP Server that handles Notifications"""
         try:            
@@ -145,10 +166,9 @@ class Notifications():
                 return 400
 
             objDocument["status"] = "active" #implement status as active
-
             response = self.__SaveNotification__("NOTIFICATIONS", strCollection, objDocument, lsMessageResponse)
 
-            if(response):
+            if(response and self.__UpdateStatusLedGeofence__(objDocument) == 204):
                 LogClass().Info("{ \"Info\": \"Notification saved successfully\" }")
                 self.notificationsEmail.SendEmail(objDocument)
                 return 200              
@@ -215,3 +235,31 @@ class Notifications():
             LogClass().Critical("{ \"Exception\": \"" + str(traceback.format_exc()) + "\" }")
             lsMessageResponse.append(str(e))
             return 500 
+
+    def __SendDefaultRequest__(self, strType: str, strRoute: str, jsonPayload: object, jsonHeaders: object) -> int: 
+        """Send Request and return response code"""
+        objResponse = None
+        command = strType.upper()
+
+        if(command == "POST"):
+            objResponse = requests.post(url=strRoute, json = jsonPayload, headers = jsonHeaders)
+            self.__LogRequest__(objResponse, jsonPayload)
+
+            return objResponse.status_code
+        elif(command == "PUT"):
+            objResponse = requests.put(url=strRoute, json = jsonPayload, headers = jsonHeaders)
+            self.__LogRequest__(objResponse, jsonPayload)
+
+            return objResponse.status_code
+        else:
+            return 500
+
+    def __LogRequest__(self, objResponse: object, objSent: object) -> None:
+        """Log Resquest information"""
+
+        if(objResponse.ok):
+            LogClass().Info("{ \"Info\": \"request has succeeded\", \"StatusCode\": " + str(objResponse.status_code) + 
+                ", \"object\": {" + str(objSent) + "} }")
+        else:
+            LogClass().Error("{ \"Error\": \"Some error happen\", \"StatusCode\": " + str(objResponse.status_code) + 
+                ", \"Message\": \"" + objResponse.text +  "\", \"object\": {" + str(objSent) + "} }")

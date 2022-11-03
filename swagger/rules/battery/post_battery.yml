@@ -11,15 +11,16 @@ post:
   - name: object
     in: body
     type: object
-    required: true
     description: The object with informations
     properties:
-          id:
-            type: string
-            required: true          
-          battery:
-            type: number
-            required: true
+      id:
+        type: string 
+      type:
+        type: string   
+      battery:
+        type: number
+      ledStatus:
+        type: string
 
 definitions:
   Error:

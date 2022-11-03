@@ -19,6 +19,13 @@ post:
     description: The type of Object (e.g. Truck)
     required: true
     type: string
+  - name: rule
+    in: body    
+    description: Set only in Geofence notifications
+    enum: [entering, leaving]
+    schema:
+      type: string
+      example: leaving    
   - name: email
     in: body    
     description: The emails to send the notification

@@ -18,12 +18,22 @@ get:
     schema:
       type: string   
       example: 'urn:ngsi-ld:Truck:2feefcf6-b7c8-470f-a628-d92300ef64c4'
+  - name: status
+    in: query
+    required: false
+    description: The Notifications status
+    enum: [active, unactive]
+    schema:
+      type: string
+      example: active
 responses:
     '200':
       description: Successful response
       schema:
         type: object
         properties:
+          _id:
+            type: string
           message:
             type: string
           id:

@@ -43,19 +43,20 @@ class SmartRules():
         strRoute = self.strHttp + "/v2/entities/" + strID + "/attrs"
         objReturn = {"batteryPerc": { "value": batteryPerc, "type": "Number"}}  
 
-        return self.__SendDefaultRequest__("POST", strRoute, objReturn, self.jsonHeaders)
+        if(batteryPerc < 25):
+            objReturn["ledStatus"] = {"value": "lowBattery", "type": "Text"}
+        elif(batteryPerc > 25 and objRequest["object"]["ledStatus"] == "lowBattery"):
+            objReturn["ledStatus"] = {"value": "ativo", "type": "Text"}
+
+        return self.__SendDefaultRequest__("POST", strRoute, objReturn, self.jsonHeaders)    
 
     def __GetRequestBody__(self, request) -> object:
         """Get request's body to json object"""
-
-        content_len = int(request.headers.get("Content-Length"), 0)
-        raw_body = request.json
-
-        return raw_body
+        response = request.get_data()
+        return json.loads(response.decode("utf-8"))
 
     def __UpdateWorkedHours__(self, request) -> object:
         """Update WorkedHours on Object"""
-
         jsonObject = self.__GetRequestBody__(request)
         nLastWorkedHours = jsonObject["object"]["lastWorkedHours"]
         jsonObject["object"]["workedHours"] += nLastWorkedHours 
@@ -63,7 +64,7 @@ class SmartRules():
         return jsonObject
 
     def __CheckEachOneMaintenance__(self, objReturn: object, objRules: object, nWorkedHours: int, nHours: int, strKey: str) -> object:
-        """"Rule Maintenance"""
+        """Rule Maintenance"""
 
         nCount = int(nWorkedHours / nHours)
         if  (nCount > objRules[strKey]): 
@@ -76,7 +77,7 @@ class SmartRules():
         return objReturn
 
     def __CheckLedStatusRule__(self, objReturn: object) -> object:
-        """"Rule Led Status"""
+        """Rule Led Status"""
 
         if  (objReturn["activeNow"]["value"] > 0): 
             objReturn["ledStatus"] = {"value": "manutencao", "type": "Text"}
@@ -85,7 +86,9 @@ class SmartRules():
 
     def __CheckRuleMaintenance__(self, nWorkedHours: int, objRules: object) -> object:
         """"Check Rules' Maintenance"""
-        objReturn = {"activeNow": {"value": objRules["activeNow"], "type": "Number"}}  
+        objReturn = {}
+        objReturn["activeNow"] = {"value": objRules["activeNow"], "type": "Number"}
+        objReturn["workedHours"] = {"value": nWorkedHours, "type": "Number"}
 
         # 10 Hours' rule
         objReturn = self.__CheckEachOneMaintenance__(objReturn, objRules, nWorkedHours, 10, "allTrigged10Hours")
@@ -125,22 +128,23 @@ class SmartRules():
 
         if(command == "POST"):
             objResponse = requests.post(url=strRoute, json = jsonPayload, headers = jsonHeaders)
-            self.__LogRequest__(objResponse)
+            self.__LogRequest__(objResponse, jsonPayload)
 
             return objResponse.status_code
         elif(command == "PUT"):
             objResponse = requests.put(url=strRoute, json = jsonPayload, headers = jsonHeaders)
-            self.__LogRequest__(objResponse)
+            self.__LogRequest__(objResponse, jsonPayload)
 
             return objResponse.status_code
         else:
             return 500
 
-    def __LogRequest__(self, objResponse) -> None:
+    def __LogRequest__(self, objResponse: object, objSent: object) -> None:
         """Log Resquest information"""
 
         if(objResponse.ok):
-            LogClass().Info("{ \"Info\": \"request has succeeded\", \"StatusCode\": " + str(objResponse.status_code) + " }")
+            LogClass().Info("{ \"Info\": \"request has succeeded\", \"StatusCode\": " + str(objResponse.status_code) + 
+                ", \"object\": {" + str(objSent) + "} }")
         else:
             LogClass().Error("{ \"Error\": \"Some error happen\", \"StatusCode\": " + str(objResponse.status_code) + 
-                ", \"Message\": " + objResponse.text + " }")
+                ", \"Message\": \"" + objResponse.text +  "\", \"object\": {" + str(objSent) + "} }")

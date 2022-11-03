@@ -22,14 +22,14 @@ def WorkedHours_POST():
     """file: ../swagger/rules/workedHours/post_workedHours.yml"""
     nCode = 500
     nCode = smartRulesReq.CheckWorkedHours(request)
-    return __SendResponseDefault__(nCode, lsMessageResponse, True if nCode == 400 else False)
+    return __SendResponseDefault__(nCode, None, True if nCode == 400 else False)
 
 @appServer.route("/rules/battery", methods=['POST'])
 def Battery_POST():
     """file: ../swagger/rules/battery/post_battery.yml"""
     nCode = 500
     nCode = smartRulesReq.CheckBattery(request)
-    return __SendResponseDefault__(nCode, lsMessageResponse, True if nCode == 400 else False)
+    return __SendResponseDefault__(nCode, None, True if nCode == 400 else False)
 
 @appServer.route("/notifications", methods=['PUT'])
 def Notifications_PUT():

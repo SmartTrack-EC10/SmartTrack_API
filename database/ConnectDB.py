@@ -1,5 +1,5 @@
+import json, os
 from pymongo import MongoClient, database, collection
-import json
 from Logs.log import LogClass
 
 import traceback
@@ -8,16 +8,23 @@ class ConnectionDB():
     CLIENT: database.Database
     clNotification: collection.Collection
 
+    #environment variables
+    user: str 
+    passw: str
+
     def __init__(self):
         self.CLIENT = None
         self.clNotification = None
+        self.user = os.environ.get('DB_USER')
+        self.passw = os.environ.get('DB_PASSWORD')
 
     def __ConnectionDataBase__(self, strDatabase: str, strCollection: str)-> bool:
         """Create a Connection to MongoDB"""
         try:
-            self.CLIENT = MongoClient("mongodb://localhost:27017/")
+            strConnection = "mongodb://" + self.user + ":" + self.passw +"@0.0.0.0:27000/"
+            self.CLIENT = MongoClient(strConnection)
             if strDatabase not in self.CLIENT.list_database_names():
-                self.clNotification = self.CLIENT[strDatabase].create_collection(name= strCollection)
+                self.clNotification = self.CLIENT[strDatabase].create_collection(name=strCollection)
                 self.clNotification.insert_one({})
                 return True
             else:
@@ -68,9 +75,10 @@ class ConnectionDB():
         """Get a List of Objects on Database"""
         if(self.CLIENT is not None and self.clNotification is not None):
             lsResponseObject = []
-            objResp = self.clNotification.get_collection(strCollection).find(objParameters, {"_id": 0})      
+            objResp = self.clNotification.get_collection(strCollection).find(objParameters)      
 
             for response in objResp:
+                response["_id"] = str(response["_id"])
                 if("recvTime" in response):
                     response["recvTime"] = response["recvTime"].isoformat()
 
